@@ -8,16 +8,15 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/EmreAyberk/goLangCrud/pkg/item"
+	cache "github.com/EmreAyberk/go-ddd-example/pkg/cache"
+	"github.com/EmreAyberk/go-ddd-example/pkg/item"
 )
 
 func main() {
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGTERM, os.Interrupt)
 
-	itemRepo := item.NewRepository()
-	itemService := item.NewService(itemRepo)
-	itemHandler := item.NewHandler(itemService)
+	itemHandler := ItemContainer()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/items", itemHandler.Handle)
@@ -27,4 +26,13 @@ func main() {
 	}()
 	<-sig
 	fmt.Println("Graceful Shutdown!!")
+}
+
+func ItemContainer() item.Handle {
+	memoryCache := cache.NewMemoryCache()
+
+	itemRepo := item.NewRepository()
+	itemService := item.NewService(itemRepo)
+	itemHandler := item.NewHandler(itemService, memoryCache)
+	return itemHandler
 }

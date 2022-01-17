@@ -21,10 +21,10 @@ func NewRepository() Repository {
 	return Repository{Data: map[string]string{}}
 }
 
-var mu sync.Mutex
+var mu sync.RWMutex
 
 func init() {
-	mu = sync.Mutex{}
+	mu = sync.RWMutex{}
 }
 
 // Create returns error because if any db action happens, it may cause error
@@ -38,15 +38,15 @@ func (r *Repository) Create(item Item) error {
 
 // GetAll returns error because if any db action happens, it may cause error
 func (r *Repository) GetAll() (map[string]string, error) {
-	mu.Lock()
-	defer mu.Unlock()
+	mu.RLock()
+	defer mu.RUnlock()
 	return r.Data, nil
 }
 
 // GetOne returns error because if any db action happens, it may cause error
 func (r *Repository) GetOne(key string) (Item, error) {
-	mu.Lock()
-	defer mu.Unlock()
+	mu.RLock()
+	defer mu.RUnlock()
 	if _, exist := r.Data[key]; exist {
 		return Item{
 			Key:   key,
